@@ -1,8 +1,8 @@
 package com.kama.jchatmind.agent.examples;
 
-import com.kama.jchatmind.agent.tools.test.CityTool;
-import com.kama.jchatmind.agent.tools.test.DateTool;
-import com.kama.jchatmind.agent.tools.test.WeatherTool;
+import com.kama.jchatmind.agent.tools.CityTool;
+import com.kama.jchatmind.agent.tools.DateTool;
+import com.kama.jchatmind.agent.tools.WeatherTool;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.tool.ToolCallback;
