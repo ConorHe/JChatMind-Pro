@@ -17,6 +17,7 @@ export interface CreateAgentRequest {
   model: ModelType;
   allowedTools?: string[];
   allowedKbs?: string[];
+  allowedMcpServers?: string[];
   chatOptions?: ChatOptions;
 }
 
@@ -27,6 +28,7 @@ export interface UpdateAgentRequest {
   model?: ModelType;
   allowedTools?: string[];
   allowedKbs?: string[];
+  allowedMcpServers?: string[];
   chatOptions?: ChatOptions;
 }
 
@@ -42,6 +44,7 @@ export interface AgentVO {
   model: ModelType;
   allowedTools?: string[];
   allowedKbs?: string[];
+  allowedMcpServers?: string[];
   chatOptions?: ChatOptions;
   createdAt?: string;
   updatedAt?: string;
@@ -56,6 +59,13 @@ export interface GetAgentsResponse {
  */
 export async function getAgents(): Promise<GetAgentsResponse> {
   return get<GetAgentsResponse>("/agents");
+}
+
+/**
+ * 获取可用 MCP Server 名称列表
+ */
+export async function getMcpServers(): Promise<string[]> {
+  return get<string[]>("/mcp-servers");
 }
 
 /**

@@ -3,6 +3,7 @@ package com.kama.jchatmind.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import com.kama.jchatmind.model.dto.AgentDTO;
 import com.kama.jchatmind.model.entity.Agent;
 import com.kama.jchatmind.model.request.CreateAgentRequest;
@@ -33,6 +34,8 @@ public class AgentConverter {
                 .model(agentDTO.getModel().getModelName())
                 .allowedTools(objectMapper.writeValueAsString(agentDTO.getAllowedTools()))
                 .allowedKbs(objectMapper.writeValueAsString(agentDTO.getAllowedKbs()))
+                .allowedMcpServers(objectMapper.writeValueAsString(
+                        agentDTO.getAllowedMcpServers() != null ? agentDTO.getAllowedMcpServers() : Collections.emptyList()))
                 .chatOptions(objectMapper.writeValueAsString(agentDTO.getChatOptions()))
                 .createdAt(agentDTO.getCreatedAt())
                 .updatedAt(agentDTO.getUpdatedAt())
@@ -54,6 +57,9 @@ public class AgentConverter {
                 .model(AgentDTO.ModelType.fromModelName(agent.getModel()))
                 .allowedTools(objectMapper.readValue(agent.getAllowedTools(), new TypeReference<>(){}))
                 .allowedKbs(objectMapper.readValue(agent.getAllowedKbs(), new TypeReference<>(){}))
+                .allowedMcpServers(agent.getAllowedMcpServers() != null
+                        ? objectMapper.readValue(agent.getAllowedMcpServers(), new TypeReference<>(){})
+                        : Collections.emptyList())
                 .chatOptions(objectMapper.readValue(agent.getChatOptions(), AgentDTO.ChatOptions.class))
                 .createdAt(agent.getCreatedAt())
                 .updatedAt(agent.getUpdatedAt())
@@ -69,6 +75,7 @@ public class AgentConverter {
                 .model(dto.getModel())
                 .allowedTools(dto.getAllowedTools())
                 .allowedKbs(dto.getAllowedKbs())
+                .allowedMcpServers(dto.getAllowedMcpServers())
                 .chatOptions(dto.getChatOptions())
                 .build();
     }
@@ -91,6 +98,7 @@ public class AgentConverter {
                 .model(AgentDTO.ModelType.fromModelName(request.getModel()))
                 .allowedTools(request.getAllowedTools())
                 .allowedKbs(request.getAllowedKbs())
+                .allowedMcpServers(request.getAllowedMcpServers() != null ? request.getAllowedMcpServers() : Collections.emptyList())
                 .chatOptions(request.getChatOptions())
                 .build();
     }
@@ -116,6 +124,9 @@ public class AgentConverter {
         }
         if (request.getAllowedKbs() != null) {
             dto.setAllowedKbs(request.getAllowedKbs());
+        }
+        if (request.getAllowedMcpServers() != null) {
+            dto.setAllowedMcpServers(request.getAllowedMcpServers());
         }
         if (request.getChatOptions() != null) {
             dto.setChatOptions(request.getChatOptions());

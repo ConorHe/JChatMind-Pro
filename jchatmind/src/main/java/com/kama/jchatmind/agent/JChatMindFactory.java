@@ -14,6 +14,7 @@ import com.kama.jchatmind.model.dto.KnowledgeBaseDTO;
 import com.kama.jchatmind.model.entity.Agent;
 import com.kama.jchatmind.model.entity.KnowledgeBase;
 import com.kama.jchatmind.service.ChatMessageFacadeService;
+import com.kama.jchatmind.service.McpToolFacadeService;
 import com.kama.jchatmind.service.SseService;
 import com.kama.jchatmind.service.ToolFacadeService;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ public class JChatMindFactory {
     private final KnowledgeBaseMapper knowledgeBaseMapper;
     private final KnowledgeBaseConverter knowledgeBaseConverter;
     private final ToolFacadeService toolFacadeService;
+    private final McpToolFacadeService mcpToolFacadeService;
     private final ChatMessageFacadeService chatMessageFacadeService;
     private final ChatMessageConverter chatMessageConverter;
 
@@ -55,6 +57,7 @@ public class JChatMindFactory {
             KnowledgeBaseMapper knowledgeBaseMapper,
             KnowledgeBaseConverter knowledgeBaseConverter,
             ToolFacadeService toolFacadeService,
+            McpToolFacadeService mcpToolFacadeService,
             ChatMessageFacadeService chatMessageFacadeService,
             ChatMessageConverter chatMessageConverter
     ) {
@@ -65,6 +68,7 @@ public class JChatMindFactory {
         this.knowledgeBaseMapper = knowledgeBaseMapper;
         this.knowledgeBaseConverter = knowledgeBaseConverter;
         this.toolFacadeService = toolFacadeService;
+        this.mcpToolFacadeService = mcpToolFacadeService;
         this.chatMessageFacadeService = chatMessageFacadeService;
         this.chatMessageConverter = chatMessageConverter;
     }
@@ -235,6 +239,8 @@ public class JChatMindFactory {
         List<Tool> runtimeTools = resolveRuntimeTools(agentConfig);
         // 将工具调用转换成 ToolCallback 的形式
         List<ToolCallback> toolCallbacks = buildToolCallbacks(runtimeTools);
+        // 追加 MCP 工具（按 Agent 配置的 allowedMcpServers）
+        toolCallbacks.addAll(mcpToolFacadeService.getMcpToolCallbacks(agentConfig.getAllowedMcpServers()));
 
         return buildAgentRuntime(
                 agent,

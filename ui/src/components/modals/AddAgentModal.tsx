@@ -8,6 +8,7 @@ import {
   type AgentVO,
   type ModelType,
   getOptionalTools,
+  getMcpServers,
   type ToolVO,
 } from "../../api/api.ts";
 import { useKnowledgeBases } from "../../hooks/useKnowledgeBases.ts";
@@ -27,9 +28,8 @@ const menuItems = [
   { key: "base", label: "基础设置" },
   { key: "model", label: "模型设置" },
   { key: "knowledge", label: "知识库设置" },
-  // { key: "mcp", label: "MCP 服务器" },
+  { key: "mcp", label: "MCP 服务器" },
   { key: "tools", label: "工具调用" },
-  // { key: "memory", label: "全局记忆" },
 ];
 
 const AddAgentModal: React.FC<AddAgentModalProps> = ({
@@ -48,6 +48,9 @@ const AddAgentModal: React.FC<AddAgentModalProps> = ({
   // 工具列表
   const [tools, setTools] = useState<ToolVO[]>([]);
 
+  // MCP Server 列表
+  const [mcpServers, setMcpServers] = useState<string[]>([]);
+
   // 表单数据
   const [formData, setFormData] = useState<CreateAgentRequest>({
     name: "智能体助手",
@@ -56,6 +59,7 @@ const AddAgentModal: React.FC<AddAgentModalProps> = ({
     model: "deepseek-chat",
     allowedTools: [],
     allowedKbs: [],
+    allowedMcpServers: [],
     chatOptions: {
       temperature: 0.7,
       topP: 1.0,
@@ -75,6 +79,7 @@ const AddAgentModal: React.FC<AddAgentModalProps> = ({
         model: editingAgent.model,
         allowedTools: editingAgent.allowedTools || [],
         allowedKbs: editingAgent.allowedKbs || [],
+        allowedMcpServers: editingAgent.allowedMcpServers || [],
         chatOptions: editingAgent.chatOptions || {
           temperature: 0.7,
           topP: 1.0,
@@ -90,6 +95,7 @@ const AddAgentModal: React.FC<AddAgentModalProps> = ({
         model: "deepseek-chat",
         allowedTools: [],
         allowedKbs: [],
+        allowedMcpServers: [],
         chatOptions: {
           temperature: 0.7,
           topP: 1.0,
@@ -109,8 +115,20 @@ const AddAgentModal: React.FC<AddAgentModalProps> = ({
         console.error("获取工具列表失败:", error);
       }
     }
-
     fetchTools().then();
+  }, []);
+
+  // 获取 MCP Server 列表
+  useEffect(() => {
+    async function fetchMcpServers() {
+      try {
+        const servers = await getMcpServers();
+        setMcpServers(servers);
+      } catch (error) {
+        console.error("获取 MCP Server 列表失败:", error);
+      }
+    }
+    fetchMcpServers().then();
   }, []);
 
   const isEditMode = !!editingAgent;
@@ -401,6 +419,72 @@ const AddAgentModal: React.FC<AddAgentModalProps> = ({
                   <label className="block text-gray-700 font-medium mb-1">
                     检索设置
                   </label>
+                </div>
+              </div>
+            )}
+            {selectedKey === "mcp" && (
+              <div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-3">
+                    MCP 服务器
+                  </label>
+                  <p className="text-sm text-gray-500 mb-4">
+                    选择智能体可以使用的 MCP Server，支持多选
+                  </p>
+                  {mcpServers.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>暂无可用 MCP Server</p>
+                      <p className="text-xs mt-1">
+                        请在 application-local.yaml 中配置 MCP Server 连接
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {mcpServers.map((serverName) => {
+                        const isSelected =
+                          formData.allowedMcpServers?.includes(serverName);
+                        return (
+                          <div
+                            key={serverName}
+                            className={`border rounded-lg p-4 cursor-pointer transition-all hover:border-blue-400 hover:bg-blue-50 ${
+                              isSelected
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-gray-200"
+                            }`}
+                            onClick={() => {
+                              const current = formData.allowedMcpServers || [];
+                              setFormData({
+                                ...formData,
+                                allowedMcpServers: isSelected
+                                  ? current.filter((s) => s !== serverName)
+                                  : [...current, serverName],
+                              });
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  const current = formData.allowedMcpServers || [];
+                                  setFormData({
+                                    ...formData,
+                                    allowedMcpServers: e.target.checked
+                                      ? [...current, serverName]
+                                      : current.filter((s) => s !== serverName),
+                                  });
+                                }}
+                                className="mr-3"
+                              />
+                              <span className="font-medium text-gray-900">
+                                {serverName}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

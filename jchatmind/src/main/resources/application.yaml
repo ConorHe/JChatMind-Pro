@@ -20,6 +20,10 @@ spring:
             enable: true
             required: true
   ai:
+    mcp:
+      client:
+        enabled: true
+        connections: {}   # 在 application-local.yaml 中配置具体 MCP Server 连接
     deepseek:
       api-key: your_deepseek_api_key
       base-url: https://api.deepseek.com

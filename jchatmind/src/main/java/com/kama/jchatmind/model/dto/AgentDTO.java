@@ -26,6 +26,8 @@ public class AgentDTO {
 
     private List<String> allowedKbs;
 
+    private List<String> allowedMcpServers;
+
     private ChatOptions chatOptions;
 
     private LocalDateTime createdAt;

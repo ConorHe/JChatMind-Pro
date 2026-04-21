@@ -30,6 +30,9 @@ public class Agent {
     // JSON String
     private String chatOptions;
 
+    // JSON String
+    private String allowedMcpServers;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
