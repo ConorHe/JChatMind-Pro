@@ -12,6 +12,7 @@ import type { ChatMessageVO, SseMessageType, ToolCall, ToolResponse } from "../.
 
 interface AgentChatHistoryProps {
   messages: ChatMessageVO[];
+  streamingMessage?: ChatMessageVO | null;
   displayAgentStatus?: boolean;
   agentStatusText?: string;
   agentStatusType?: SseMessageType;
@@ -103,10 +104,13 @@ const ToolResponseDisplay: React.FC<{ toolResponse: ToolResponse }> = ({
 
 const AgentChatHistory: React.FC<AgentChatHistoryProps> = ({
   messages,
+  streamingMessage,
   displayAgentStatus = false,
   agentStatusText = "",
   agentStatusType,
 }) => {
+  const displayMessages = streamingMessage ? [...messages, streamingMessage] : messages;
+
   // 滚动容器引用
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   // 是否允许自动滚动（用户是否接近底部）
@@ -114,7 +118,7 @@ const AgentChatHistory: React.FC<AgentChatHistoryProps> = ({
   // 容错阈值（像素）
   const SCROLL_THRESHOLD = 20;
   // 上一次消息数量，用于检测新消息
-  const prevMessagesLengthRef = useRef(messages.length);
+  const prevMessagesLengthRef = useRef(displayMessages.length);
 
   // 检查是否接近底部
   const checkIfNearBottom = useCallback(() => {
@@ -165,8 +169,8 @@ const AgentChatHistory: React.FC<AgentChatHistoryProps> = ({
 
   // 监听消息变化，决定是否自动滚动
   useEffect(() => {
-    const hasNewMessage = messages.length > prevMessagesLengthRef.current;
-    prevMessagesLengthRef.current = messages.length;
+    const hasNewMessage = displayMessages.length > prevMessagesLengthRef.current;
+    prevMessagesLengthRef.current = displayMessages.length;
 
     // 如果有新消息且用户接近底部，则自动滚动
     if (hasNewMessage && isNearBottom) {
@@ -200,7 +204,7 @@ const AgentChatHistory: React.FC<AgentChatHistoryProps> = ({
       ref={scrollContainerRef}
       className="flex-1 px-16 pt-4 overflow-y-scroll"
     >
-      {messages.map((message) => {
+      {displayMessages.map((message) => {
         return (
           <div className="mb-4" key={message.id}>
             {/* Assistant 消息 */}

@@ -23,6 +23,8 @@ const AgentChatView: React.FC = () => {
   const { refreshChatSessions } = useChatSessions();
 
   const [messages, setMessages] = useState<ChatMessageVO[]>([]);
+  const STREAMING_TEMP_ID = "__streaming__";
+  const [streamingMessage, setStreamingMessage] = useState<ChatMessageVO | null>(null);
 
   const addMessage = (message: ChatMessageVO) => {
     setMessages((prevMessages) => [...prevMessages, message]);
@@ -135,8 +137,15 @@ const AgentChatView: React.FC = () => {
     es.addEventListener("message", (event) => {
       // 解析 JSON
       const message = JSON.parse(event.data) as SseMessage;
-      if (message.type === "AI_GENERATED_CONTENT") {
-        // 将 AI 生成的内容存到 messages 中
+      if (message.type === "AI_STREAMING_CHUNK") {
+        const chunk = message.payload.statusText ?? "";
+        setStreamingMessage((prev) =>
+          prev === null
+            ? { id: STREAMING_TEMP_ID, sessionId: chatSessionId!, role: "assistant", content: chunk }
+            : { ...prev, content: prev.content + chunk }
+        );
+      } else if (message.type === "AI_GENERATED_CONTENT") {
+        setStreamingMessage(null);
         addMessage(message.payload.message);
       } else if (message.type === "AI_PLANNING") {
         setDisplayAgentStatus(true);
@@ -185,6 +194,7 @@ const AgentChatView: React.FC = () => {
     <div className="flex flex-col h-full">
       <AgentChatHistory
         messages={messages}
+        streamingMessage={streamingMessage}
         displayAgentStatus={displayAgentStatus}
         agentStatusText={agentStatusText}
         agentStatusType={agentStatusType}

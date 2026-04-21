@@ -42,5 +42,6 @@ public class SseMessage {
         AI_THINKING,
         AI_EXECUTING,
         AI_DONE,
+        AI_STREAMING_CHUNK,
     }
 }

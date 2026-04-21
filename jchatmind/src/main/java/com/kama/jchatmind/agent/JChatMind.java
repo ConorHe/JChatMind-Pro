@@ -235,14 +235,31 @@ public class JChatMind {
                 .messages(this.chatMemory.get(this.chatSessionId))
                 .build();
 
-        this.lastChatResponse = this.chatClient
+        ChatResponse[] lastChunk = {null};
+        StringBuilder textBuffer = new StringBuilder();
+
+        this.chatClient
                 .prompt(prompt)
                 .system(thinkPrompt)
                 .toolCallbacks(this.availableTools.toArray(new ToolCallback[0]))
-                .call()
-                .chatClientResponse()
-                .chatResponse();
+                .stream()
+                .chatResponse()
+                .doOnNext(chunk -> {
+                    lastChunk[0] = chunk;
+                    String text = chunk.getResult().getOutput().getText();
+                    if (StringUtils.hasLength(text)) {
+                        textBuffer.append(text);
+                        sseService.send(this.chatSessionId, SseMessage.builder()
+                                .type(SseMessage.Type.AI_STREAMING_CHUNK)
+                                .payload(SseMessage.Payload.builder()
+                                        .statusText(text)
+                                        .build())
+                                .build());
+                    }
+                })
+                .blockLast();
 
+        this.lastChatResponse = lastChunk[0];
         Assert.notNull(lastChatResponse, "Last chat client response cannot be null");
 
         AssistantMessage output = this.lastChatResponse
@@ -251,8 +268,12 @@ public class JChatMind {
 
         List<AssistantMessage.ToolCall> toolCalls = output.getToolCalls();
 
-        // 保存
-        saveMessage(output);
+        // 文字回答时用积累的完整文本，工具调用时用原始 output（含完整 toolCalls JSON）
+        AssistantMessage messageToSave = (toolCalls.isEmpty() && textBuffer.length() > 0)
+                ? new AssistantMessage(textBuffer.toString())
+                : output;
+
+        saveMessage(messageToSave);
         refreshPendingMessages();
 
         // 打印工具调用
